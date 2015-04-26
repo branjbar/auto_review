@@ -1,5 +1,5 @@
 """
-Here we write a python class called "Crawler" which gets a google scholar link and harvest all the related data on that page!
+Here we write a python class called "Crawler" which gets an html page and explores the useful data of papers on that page!
 """
 import pickle
 import random
@@ -13,8 +13,7 @@ import glob
 
 
 
-MAIN_FOLDER = "/Users/bijan/Dropbox/#PAPERS/#pyScholar/behavioral_robotics/"
-# MAIN_FOLDER = "/Users/bijan/Dropbox/#PAPERS/#pyScholar/complex_networks/"
+MAIN_FOLDER = "/HTML_FILES/"
 
 
 class MyOpener(FancyURLopener):
