@@ -1,5 +1,5 @@
 """
-Here we write a python class called "Crawler" which gets an html page and explores the useful data of papers on that page!
+Here we write a python code which gets a collection of Google Scholar html pages and explores the intersting patterns.
 """
 import pickle
 import random
@@ -10,32 +10,26 @@ import re
 import operator
 import time
 import glob
+import networkx  
 
 
 
-MAIN_FOLDER = "/HTML_FILES/"
+MAIN_FOLDER = "/HTML_FILES/"  # where you store all your downloaded Google pages.
 
 
 class MyOpener(FancyURLopener):
     version = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko)'
-
-
 open_url = MyOpener().open
 
-# in_degree = [7753900338122914721, 3742137919073350645, 11311448141672280414]  # inspired by most other papers.
-# betweenness = [8469961665679949106, 3813657992288142888, 18128359152601397349, 7605262999426902927,
-# 11663521936672698608]
-# hub = [7753900338122914721, 3742137919073350645, 11311448141672280414, 3813657992288142888, 2346808897114984913,
-# 13880079318989842329, 14362380329320495967, 2281355390010472193]
-# pagerank = [11311448141672280414]
-
-import networkx
 
 network = networkx.DiGraph()
 paper_dict = {}
 
 
 def read_citation_html(address):
+    """ (string) --> (addition of nodes and edges to the network)
+    reads an html papge provided as "address" and extracts the papers mentioned in it and adds the information to a network
+    """
     soup = BeautifulSoup(open_url(address).read())
 
     # get unique_key and the title of main paper on top of this page
@@ -97,6 +91,10 @@ def read_citation_html(address):
 
 
 class Paper():
+    """
+    a class to store the information of each paper suh as its unique key, title, etc.
+    """
+
     def __init__(self, unique_key, title='', authors='', abstract='', num_citation=0):
         self.unique_key = unique_key
         self.title = title.title()
@@ -114,6 +112,10 @@ class Paper():
 
 
 class Latex():
+    """
+    a class to generate a LaTeX file from the constructed network.
+    """
+    
     def __init__(self):
         self.text = """
 \documentclass{article}
@@ -166,6 +168,10 @@ class Latex():
 
 
 def write_latex():
+    """
+    discovers the important papers and adds them to the LaTeX file.
+    """
+    
     latex = Latex()
 
 #    latex.add_section("The Most Generic Papers (High in-Degree)")
@@ -197,7 +203,9 @@ def write_latex():
 
 
 def read_html_files():
-
+    """
+    parses through all the html file and uses the read_citation_html module to add their informaiton to the network.
+    """
     for index, file in enumerate(glob.glob(MAIN_FOLDER + "archive/*.html")):
         print 'File %d imported!' % index, file
         address = "file://" + file.replace(' ', '%20')
@@ -212,6 +220,11 @@ def read_html_files():
 
 
 def get_statistics():
+    """
+    uses data statistics to find the most important papers in the collection.
+    """
+    
+    
     with open(MAIN_FOLDER + "network.pkl", "r") as f:
         network = pickle.load(f)
 
@@ -251,6 +264,9 @@ def get_statistics():
 
 
 def auto_explore():
+    """
+    as we have to manually save the useful pages, here we open the random pages in the browser in order to grow our network.
+    """
     tmp_list = []
     for paper in paper_dict.values():
         tmp_list.append(paper)
@@ -264,16 +280,24 @@ def auto_explore():
 
 
 if __name__ == "__main__":
+    
+    # Load the existing paper database
     with open(MAIN_FOLDER + "paper_dict.pkl", "r") as f:
         paper_dict = pickle.load(f)
-
+    
+    # load the existing network database
     with open(MAIN_FOLDER + "network.pkl", "r") as f:
         network = pickle.load(f)
-
+    
+    # use the statistics to find the important papers
     with open(MAIN_FOLDER + "statistics.pkl", "r") as f:
         statistics = pickle.load(f)
 
-    # auto_explore()
+    # add more papers by reading more files
     read_html_files()
+    
+    # get statistics again
     get_statistics()
+    
+    # export the LaTeX survey
     write_latex()
